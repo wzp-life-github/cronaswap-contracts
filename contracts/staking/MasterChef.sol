@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.6.12;
+
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
@@ -58,7 +59,7 @@ contract MasterChef is Ownable {
     // Info of each pool.
     PoolInfo[] public poolInfo;
     // Info of each user that stakes LP tokens.
-    mapping (uint256 => mapping (address => UserInfo)) public userInfo;
+    mapping(uint256 => mapping(address => UserInfo)) public userInfo;
     // Total allocation points. Must be the sum of all allocation points in all pools.
     uint256 public totalAllocPoint = 0;
     // The second number when CRONA mining starts.
@@ -72,21 +73,24 @@ contract MasterChef is Ownable {
         CronaToken _crona,
         CronaBar _xCrona,
         address _treasury,
-        uint256 _cronaPerSecond,
-        uint256 _startTime
+        uint256 _cronaPerSecond
     ) public {
         crona = _crona;
         xCrona = _xCrona;
         treasury = _treasury;
         cronaPerSecond = _cronaPerSecond;
+    }
+
+    function setStartTime(uint256 _startTime) public onlyOwner {
+        require(startTime == 0, "startTime has been set");
         startTime = _startTime;
 
         // staking pool
         poolInfo.push(PoolInfo({
-            lpToken: _crona,
-            allocPoint: 1000,
-            lastRewardTime: startTime,
-            accCronaPerShare: 0
+            lpToken : crona,
+            allocPoint : 1000,
+            lastRewardTime : startTime,
+            accCronaPerShare : 0
         }));
 
         totalAllocPoint = 1000;
@@ -104,22 +108,24 @@ contract MasterChef is Ownable {
     // Add a new lp to the pool. Can only be called by the owner.
     // XXX DO NOT add the same LP token more than once. Rewards will be messed up if you do.
     function add(uint256 _allocPoint, IERC20 _lpToken, bool _withUpdate) public onlyOwner {
+        require(startTime != 0, "!startTime");
         if (_withUpdate) {
             massUpdatePools();
         }
         uint256 lastRewardTime = block.timestamp > startTime ? block.timestamp : startTime;
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
         poolInfo.push(PoolInfo({
-            lpToken: _lpToken,
-            allocPoint: _allocPoint,
-            lastRewardTime: lastRewardTime,
-            accCronaPerShare: 0
+            lpToken : _lpToken,
+            allocPoint : _allocPoint,
+            lastRewardTime : lastRewardTime,
+            accCronaPerShare : 0
         }));
         updateStakingPool();
     }
 
     // Update the given pool's CRONA allocation point. Can only be called by the owner.
     function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate) public onlyOwner {
+        require(startTime != 0, "!startTime");
         if (_withUpdate) {
             massUpdatePools();
         }
@@ -194,14 +200,14 @@ contract MasterChef is Ownable {
     // Deposit LP tokens to MasterChef for CRONA allocation.
     function deposit(uint256 _pid, uint256 _amount) public {
 
-        require (_pid != 0, 'deposit CRONA by staking');
+        require(_pid != 0, 'deposit CRONA by staking');
 
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
         if (user.amount > 0) {
             uint256 pending = user.amount.mul(pool.accCronaPerShare).div(1e12).sub(user.rewardDebt);
-            if(pending > 0) {
+            if (pending > 0) {
                 safeCronaTransfer(msg.sender, pending);
             }
         }
@@ -216,17 +222,17 @@ contract MasterChef is Ownable {
     // Withdraw LP tokens from MasterChef.
     function withdraw(uint256 _pid, uint256 _amount) public {
 
-        require (_pid != 0, 'withdraw CRONA by unstaking');
+        require(_pid != 0, 'withdraw CRONA by unstaking');
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(user.amount >= _amount, "withdraw: not good");
 
         updatePool(_pid);
         uint256 pending = user.amount.mul(pool.accCronaPerShare).div(1e12).sub(user.rewardDebt);
-        if(pending > 0) {
+        if (pending > 0) {
             safeCronaTransfer(msg.sender, pending);
         }
-        if(_amount > 0) {
+        if (_amount > 0) {
             user.amount = user.amount.sub(_amount);
             pool.lpToken.safeTransfer(address(msg.sender), _amount);
         }
@@ -241,11 +247,11 @@ contract MasterChef is Ownable {
         updatePool(0);
         if (user.amount > 0) {
             uint256 pending = user.amount.mul(pool.accCronaPerShare).div(1e12).sub(user.rewardDebt);
-            if(pending > 0) {
+            if (pending > 0) {
                 safeCronaTransfer(msg.sender, pending);
             }
         }
-        if(_amount > 0) {
+        if (_amount > 0) {
             pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
             user.amount = user.amount.add(_amount);
         }
@@ -262,10 +268,10 @@ contract MasterChef is Ownable {
         require(user.amount >= _amount, "withdraw: not good");
         updatePool(0);
         uint256 pending = user.amount.mul(pool.accCronaPerShare).div(1e12).sub(user.rewardDebt);
-        if(pending > 0) {
+        if (pending > 0) {
             safeCronaTransfer(msg.sender, pending);
         }
-        if(_amount > 0) {
+        if (_amount > 0) {
             user.amount = user.amount.sub(_amount);
             pool.lpToken.safeTransfer(address(msg.sender), _amount);
         }
