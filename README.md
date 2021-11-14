@@ -11,6 +11,15 @@ Router address: `0xcd7d16fB918511BF7269eC4f48d61D79Fb26f918`
 Factory address: `0x73A48f8f521EB31c55c0e1274dB0898dE599Cb11`
 
 
+## Deployed Contracts - Testnet3 
+CronaToken: `0xf7266fBB31D353099837D6bEfa5E7F197a7cfcA0`
+
+MasterChef: `0xd34dd7E16af11216F3478230e922A9E5289F1AE4`
+
+Router address: `0x4a719c7fA89B5f44b850346F4CC012c27dE4730a`
+
+Factory address: `0xa3899228D88Cd1D706BD7aA7cF105041DF6511f8`
+
 
 ## Running
 These contracts are compiled and deployed using [Hardhat](https://hardhat.org/). They can also be run using the Remix IDE.
